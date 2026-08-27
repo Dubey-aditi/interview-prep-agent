@@ -1,0 +1,8 @@
+# Core (v0–v3)
+claude-agent-sdk
+anyio
+pydantic
+
+# Rendering (v4)
+weasyprint
+pypdf
