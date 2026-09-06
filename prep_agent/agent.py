@@ -10,9 +10,10 @@ from prep_agent.tools import brief_server, get_saved_brief
 from pathlib import Path
 from prep_agent.render import to_markdown, to_pdf
 from prep_agent.prompt import build_prompt
+from prep_agent.mailer import send_email
 
 
-async def _run_async(company_url: str, profile_path: str):
+async def _run_async(company_url: str, profile_path: str, email: str):
     prompt = build_prompt(company_url, profile_path)
 
     options = ClaudeAgentOptions(
@@ -36,12 +37,20 @@ async def _run_async(company_url: str, profile_path: str):
         print("⚠️ No brief saved!")
         return
     Path("output").mkdir(exist_ok=True)
-    Path("output/brief.md").write_text(to_markdown(brief))  # quick text view
-    pdf_path = to_pdf(brief)  # the deliverable
-    print(f"\n✅ wrote output/brief.md and {pdf_path}")
+    Path(f"output/brief_{brief.company_name.replace(' ', '_')}.md").write_text(
+        to_markdown(brief)
+    )  # quick text view
+    pdf_path = to_pdf(
+        brief, f"output/brief_{brief.company_name.replace(' ', '_')}.pdf"
+    )  # the deliverable
+    print(
+        f"\n✅ wrote output/brief_{brief.company_name.replace(' ', '_')}.md and {pdf_path}"
+    )
+    if email:
+        send_email(email, pdf_path, brief.company_name)
     return brief
 
 
-def run(company_url: str, profile_path: str = "my_profile.md"):
+def run(company_url: str, profile_path: str = "my_profile.md", email: str = None):
     """Sync entry point — hides the async detail from callers (cli, web, cron)."""
-    return anyio.run(_run_async, company_url, profile_path)
+    return anyio.run(_run_async, company_url, profile_path, email)

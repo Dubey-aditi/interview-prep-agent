@@ -6,3 +6,5 @@ pydantic
 # Rendering (v4)
 weasyprint
 pypdf
+smtplib
+python-dotenv
